@@ -4,19 +4,19 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"golang.org/x/text/encoding"
 	"strconv"
 	"strings"
-	"golang.org/x/text/encoding"
 )
 
 type PhpDecoder struct {
-	source *strings.Reader
+	source   *strings.Reader
 	encoding *encoding.Decoder
 }
 
 func DecodeWithEncoding(value string, encoding encoding.Encoding) (result interface{}, err error) {
 	decoder := &PhpDecoder{
-		source: strings.NewReader(value),
+		source:   strings.NewReader(value),
 		encoding: encoding.NewDecoder(),
 	}
 	result, err = decoder.DecodeValue()
@@ -133,10 +133,19 @@ func (decoder *PhpDecoder) decodeString() (value string, err error) {
 			if err = decoder.expect('"'); err != nil {
 				return
 			}
-			tmpValue := make([]byte, strLen, strLen)
-			if nRead, _err := decoder.source.Read(tmpValue); _err != nil || nRead != strLen {
-				err = errors.New(fmt.Sprintf("Can not read string content %v. Read only: %v from %v", _err, nRead, strLen))
+			// "日本語 \"Вася" ===> len != bytes
+
+			tmpValue1 := ""
+			for i := 0; i < strLen; i++ {
+				var runeValue rune
+				runeValue, _, _err = decoder.source.ReadRune()
+				if _err != nil {
+					err = errors.New(fmt.Sprintf("Can not read rune %v", _err))
+				}
+				tmpValue1 += fmt.Sprintf("%c", runeValue)
 			}
+			tmpValue := []byte(tmpValue1)
+
 			err = decoder.expect('"')
 			var encoded []byte
 			if encoded, err = decoder.encoding.Bytes(tmpValue); err != nil {
