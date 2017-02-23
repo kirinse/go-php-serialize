@@ -1,9 +1,18 @@
 package phpserialize
 
 import (
+	"golang.org/x/text/encoding/unicode"
 	"math"
 	"testing"
 )
+
+func TestEncoding(t *testing.T) {
+	coded := `a:1:{i:0;a:2:{s:3:"url";s:87:"http://tr.kinopoisk.ru/594821/kinopoisk.ru-Legend-Psychotic-Forest-Ranger-The-74356.flv";s:4:"size";s:15:"Низкое качество";}}`
+	if _, err := DecodeWithEncoding(coded, unicode.UTF8); err != nil {
+		t.Errorf("decode data fail %v, %v", err, coded)
+		return
+	}
+}
 
 func TestDecodeArrayValue2(t *testing.T) {
 	data := make(map[interface{}]interface{})
