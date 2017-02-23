@@ -12,6 +12,17 @@ func TestEncoding(t *testing.T) {
 		t.Errorf("decode data fail %v, %v", err, coded)
 		return
 	}
+	coded = `s:15:"Низкое качество"`
+	result, err := DecodeWithEncoding(coded, unicode.UTF8)
+	if err != nil {
+		t.Errorf("decode data fail %v, %v", err, coded)
+		return
+	}
+	if result != "Низкое качество" {
+		t.Errorf("decode data fail %v, %v != %v ", err, coded, result)
+		return
+	}
+
 }
 
 func TestDecodeArrayValue2(t *testing.T) {
